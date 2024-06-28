@@ -48,23 +48,27 @@ def ingredients(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(response_recipe.to_json(), status_code=200)
 
 
-@app.route(route="recipe-image")
+@app.route(route="recipe-image", methods=['POST'])
 def recipie_image(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    try:
+        req_body = req.get_json()
+    except ValueError:
+        return func.HttpResponse("Invalid JSON", status_code=400)
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
-    else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+    recipe = req_body["recipe"]
+    people = req_body["people"]
+
+    client = OpenAI()
+
+    response = client.images.generate(
+    model="dall-e-3",
+    prompt=f"A platter of {recipe}, for {people} people. If this dish is individual then give me an image of how it would come to the table. Make it good looking but realistic",
+    n=1,
+    size="1024x1024",
+    )
+
+    url = response.data[0].url
+
+    return func.HttpResponse(url, status_code=200)
