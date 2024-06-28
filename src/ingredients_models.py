@@ -138,17 +138,15 @@ class Recipe:
         }
         return json.dumps(example, indent=4)
     
-
 class RecipeResponse:
-    def __init__(self, recipe):
-        self.recipe = recipe
-
-    # create a method to serialize the entire object to json string
+    def __init__(self, recipes):
+        self.recipes = recipes
+    
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
-
     @staticmethod
     def from_dict(data):
-        recipe = Recipe.from_dict(data.get('recipe'))
-        return RecipeResponse(recipe=recipe)
+        recipes = [Recipe.from_dict(recipe) for recipe in data.get('recipes')]
+        return RecipeResponse(recipes=recipes)
+
